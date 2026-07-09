@@ -4,6 +4,6 @@
   "description": "Mod that let's you do fun stuff to the sun",
   "version": "0.1",
   "gameVersion": "0.98a-RC",
-  "jars": ["jars/StarProject.jar"],
+  "jars": ["jars/starproject.jar"],
   "modPlugin": "starproject.StarProjectPlugin"
 }
