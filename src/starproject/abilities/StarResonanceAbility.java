@@ -13,7 +13,7 @@ public class StarResonanceAbility extends BaseDurationAbility {
 
         if (!hasResonanceShip(fleet)) {
             Global.getSector().getCampaignUI().addMessage(
-                "Requires the Stellae with the Stellar Resonance Catalyst installed."
+                "You don't have a ship that can establish a resonance with a star."
             );
             return;
         }

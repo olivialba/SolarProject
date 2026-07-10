@@ -34,36 +34,35 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
 
     private void showMain() {
         text.clear();
+        options.clearOptions();
 
         if (!canUseAtLocation()) {
             text.addParagraph(
-                "The Stellar Resonance Catalyst cannot establish a resonance. " +
-                "You must be near a suitable star."
+                "Captain, the Catalyst cannot synchronize with the surrounding stellar field. " +
+                "We'll need to approach a suitable star before resonance can be initiated."
             );
         }
         else {
             text.addParagraph(
-                "The Stellar Resonance Catalyst detects a compatible stellar source."
+                "Captain, the Catalyst has synchronized with the star's hyperfield. " +
+                "Current distance is well within operational tolerances. We're ready to initiate stellar resonance on your order."
+            );
+            options.addOption(
+                "Option 1",
+                "OPTION_1"
+            );
+
+            options.addOption(
+                "Option 2",
+                "OPTION_2"
+            );
+
+            options.addOption(
+                "Option 3",
+                "OPTION_3"
             );
         }
 
-
-        options.clearOptions();
-
-        options.addOption(
-            "Option 1",
-            "OPTION_1"
-        );
-
-        options.addOption(
-            "Option 2",
-            "OPTION_2"
-        );
-
-        options.addOption(
-            "Option 3",
-            "OPTION_3"
-        );
 
         options.addOption(
             "Leave",
@@ -92,7 +91,8 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
             star.getLocation()
         );
 
-        return distance < 1000f;
+        Global.getLogger(this.getClass()).info("Distance from star: " + distance);
+        return distance < 1600f;
     }
 
 
