@@ -34,7 +34,6 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         ((CustomCampaignEntityAPI) entity).setRadius(1f);
 
         beamSprite = Global.getSettings().getSprite("graphics/fx/beamfringe.png");
-        beamSprite.setCenter(beamSprite.getWidth() * 0.5f, beamSprite.getHeight() * 0.5f);
     }
 
     @Override
@@ -96,30 +95,57 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         float toX = fleet.getLocation().x;
         float toY = fleet.getLocation().y;
 
+        float dirX = toX - fromX;
+        float dirY = toY - fromY;
         float distance = Misc.getDistance(fromX, fromY, toX, toY);
         if (distance <= 1f) {
             return;
         }
 
-        float angle = Misc.getAngleInDegrees(entity.getLocation(), fleet.getLocation());
-        float midX = (fromX + toX) * 0.5f;
-        float midY = (fromY + toY) * 0.5f;
+        float invDistance = 1f / distance;
+        float beamDistance = distance;
 
-        float scroll = elapsed * BEAM_SCROLL_SPEED;
+        float px = -dirY * invDistance;
+        float py = dirX * invDistance;
+        float halfWidth = BEAM_WIDTH * 0.5f;
+
+        float startLeftX = fromX + px * halfWidth;
+        float startLeftY = fromY + py * halfWidth;
+        float startRightX = fromX - px * halfWidth;
+        float startRightY = fromY - py * halfWidth;
+        float endLeftX = toX + px * halfWidth;
+        float endLeftY = toY + py * halfWidth;
+        float endRightX = toX - px * halfWidth;
+        float endRightY = toY - py * halfWidth;
+
         float texWidth = beamSprite.getTextureWidth();
         float texHeight = beamSprite.getTextureHeight();
-        float texSpan = Math.max(0.25f, Math.min(1f, distance / 3000f));
-        float texX = (scroll % 1f) * texWidth;
+        float startU = (elapsed * BEAM_SCROLL_SPEED) % texWidth;
+        float repeat = Math.max(0.75f, Math.min(3f, beamDistance / 900f));
+        float endU = startU + texWidth * repeat;
 
-        beamSprite.setAdditiveBlend();
-        beamSprite.setAngle(angle);
-        beamSprite.setColor(BEAM_COLOR);
-        beamSprite.setAlphaMult(alphaMult * BEAM_ALPHA);
-        beamSprite.setSize(distance, BEAM_WIDTH);
-        beamSprite.setTexX(texX);
-        beamSprite.setTexY(0f);
-        beamSprite.setTexWidth(texWidth * texSpan);
-        beamSprite.setTexHeight(texHeight);
-        beamSprite.renderAtCenter(midX, midY);
+        GL11.glPushMatrix();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+
+        beamSprite.bindTexture();
+        float red = BEAM_COLOR.getRed() / 255f;
+        float green = BEAM_COLOR.getGreen() / 255f;
+        float blue = BEAM_COLOR.getBlue() / 255f;
+        GL11.glColor4f(red, green, blue, alphaMult * BEAM_ALPHA);
+
+        GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
+        GL11.glTexCoord2f(startU, 0f);
+        GL11.glVertex2f(startLeftX, startLeftY);
+        GL11.glTexCoord2f(startU, texHeight);
+        GL11.glVertex2f(startRightX, startRightY);
+        GL11.glTexCoord2f(endU, 0f);
+        GL11.glVertex2f(endLeftX, endLeftY);
+        GL11.glTexCoord2f(endU, texHeight);
+        GL11.glVertex2f(endRightX, endRightY);
+        GL11.glEnd();
+
+        GL11.glPopMatrix();
     }
 }
