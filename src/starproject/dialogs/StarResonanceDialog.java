@@ -105,7 +105,9 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
         }
 
         if ("OPTION_1".equals(optionData)) {
-            // future action
+
+            dialog.dismiss();
+            return;
         }
 
         if ("OPTION_2".equals(optionData)) {
