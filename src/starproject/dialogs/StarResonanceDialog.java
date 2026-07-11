@@ -4,8 +4,10 @@ import java.util.Map;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.CustomCampaignEntityAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
+import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
@@ -105,6 +107,7 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
         }
 
         if ("OPTION_1".equals(optionData)) {
+            spawnResonanceFlash();
 
             dialog.dismiss();
             return;
@@ -117,6 +120,34 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
         if ("OPTION_3".equals(optionData)) {
             // future action
         }
+    }
+
+
+    private void spawnResonanceFlash() {
+        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        if (fleet == null) {
+            return;
+        }
+
+        LocationAPI location = fleet.getContainingLocation();
+        if (location == null) {
+            return;
+        }
+
+        CustomCampaignEntityAPI beam = location.addCustomEntity(
+            null,
+            null,
+            "star_resonance_beam",
+            "neutral"
+        );
+        if (beam == null) {
+            return;
+        }
+
+        beam.setFixedLocation(fleet.getLocation().x, fleet.getLocation().y);
+        beam.setRadius(1f);
+
+        Misc.fadeAndExpire(beam, 12f);
     }
 
 

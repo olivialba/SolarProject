@@ -1,0 +1,22 @@
+{
+  "star_resonance_beam": {
+    "defaultName": "Stellar Resonance Beam",
+    "nameInText": "stellar resonance beam",
+    "shortName": "beam",
+    "aOrAn": "a",
+    "isOrAre": "is",
+    "defaultRadius": 1,
+    "showInCampaign": true,
+    "showIconOnMap": false,
+    "showNameOnMap": false,
+    "scaleNameWithZoom": false,
+    "scaleIconWithZoom": false,
+    "renderCircleIndicator": false,
+    "renderCircleIndicatorSelectionFlash": false,
+    "icon": "graphics/icons/mission_location.png",
+    "iconWidth": 16,
+    "iconHeight": 16,
+    "layers": [STATIONS],
+    "pluginClass": "starproject.entities.ResonanceBeamEntityPlugin"
+  }
+}
