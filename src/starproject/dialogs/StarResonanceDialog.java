@@ -4,10 +4,8 @@ import java.util.Map;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
-import com.fs.starfarer.api.campaign.CustomCampaignEntityAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
-import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
@@ -15,6 +13,7 @@ import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import com.fs.starfarer.api.util.Misc;
+import com.fs.starfarer.api.campaign.CustomCampaignEntityAPI;
 
 public class StarResonanceDialog implements InteractionDialogPlugin {
 
@@ -129,12 +128,12 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
             return;
         }
 
-        LocationAPI location = fleet.getContainingLocation();
-        if (location == null) {
+        PlanetAPI star = fleet.getStarSystem() != null ? fleet.getStarSystem().getStar() : null;
+        if (star == null || star.getSpec().isBlackHole()) {
             return;
         }
 
-        CustomCampaignEntityAPI beam = location.addCustomEntity(
+        CustomCampaignEntityAPI beam = (CustomCampaignEntityAPI) fleet.getContainingLocation().addCustomEntity(
             null,
             null,
             "star_resonance_beam",
@@ -144,7 +143,7 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
             return;
         }
 
-        beam.setFixedLocation(fleet.getLocation().x, fleet.getLocation().y);
+        beam.setLocation(star.getLocation().x, star.getLocation().y);
         beam.setRadius(1f);
 
         Misc.fadeAndExpire(beam, 12f);
