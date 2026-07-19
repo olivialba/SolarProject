@@ -18,14 +18,20 @@ public class StarAuroraResonanceEntity extends BaseCustomEntityPlugin implements
     private AuroraRenderer auroraRenderer;
     private SpriteAPI auroraTexture;
 
+    private float elapsed;
+    private float growthDuration = 10.0f;
+    private Color starColor = new Color(247, 255, 229, 180);
+
     @Override
     public void init(SectorEntityToken entity, Object pluginParams) {
         super.init(entity, pluginParams);
-        
+
+        if (pluginParams instanceof Color) {
+            starColor = (Color) pluginParams;
+        }
+
         // 1. Load the texture (Use a vanilla aurora texture or your own)
         auroraTexture = Global.getSettings().getSprite("terrain", "aurora");
-        
-        // 2. Initialize the renderer, passing this class as the data provider
         auroraRenderer = new AuroraRenderer(this);
     }
 
@@ -35,6 +41,7 @@ public class StarAuroraResonanceEntity extends BaseCustomEntityPlugin implements
         if (auroraRenderer != null) {
             auroraRenderer.advance(amount);
         }
+        elapsed += amount;
     }
 
     @Override
@@ -52,13 +59,13 @@ public class StarAuroraResonanceEntity extends BaseCustomEntityPlugin implements
     @Override
     public float getAuroraInnerRadius() { 
         // Starts just outside the entity
-        return entity.getRadius() + 10f; 
+        return entity.getRadius() + 30f; 
     }
 
     @Override
     public float getAuroraOuterRadius() { 
         // How far the aurora extends
-        return entity.getRadius() + 150f; 
+        return entity.getRadius() + 800f;
     }
 
     @Override
@@ -70,37 +77,55 @@ public class StarAuroraResonanceEntity extends BaseCustomEntityPlugin implements
     @Override
     public Color getAuroraColorForAngle(float angle) { 
         // You can return different colors based on the angle for rainbow effects!
-        return new Color(100, 255, 150, 180); 
+        return starColor;
     }
 
     @Override
     public float getAuroraAlphaMultForAngle(float angle) { 
-        return 1f; 
+        float progress = Math.min(elapsed / growthDuration, 1.0f);
+        // Smoothstep
+        float smooth = progress * progress * (3f - 2f * progress);
+        return smooth * 0.9f;
     }
 
     @Override
     public float getAuroraShortenMult(float angle) { 
-        // Controls the intensity of the "pulsing" sine wave effect
-        return 0.8f; 
+        float progress = Math.min(elapsed / growthDuration, 1.0f);
+        float smooth = progress * progress * (3f - 2f * progress);
+        
+        // START small: low shortenMult = compressed radial length
+        // The sine wave amplitude is reduced, so the aurora stays close to inner radius
+        // END at 1.0: full extension to outer radius
+        return 0.15f + smooth * 0.85f; // 0.15 → 1.0
     }
 
     @Override
     public float getAuroraInnerOffsetMult(float angle) { 
+        // Returns the offset multiplier for the inner radius at the specified angle.
         return 1f; 
     }
 
     @Override
     public float getAuroraThicknessMult(float angle) { 
-        return 2f; 
+        float progress = Math.min(elapsed / growthDuration, 1.0f);
+        float smooth = progress * progress * (3f - 2f * progress);
+        
+        // Start THIN (0.2), grow to NORMAL (1.0)
+        // The aurora will appear tight around the star at first, then fill out
+        return 0.2f + smooth * 0.8f; // 0.2 → 1.0
     }
 
     @Override
     public float getAuroraThicknessFlat(float angle) { 
-        return 0f; 
+        float progress = Math.min(elapsed / growthDuration, 1.0f);
+        float smooth = progress * progress * (3f - 2f * progress);
+        // Start with minimal flat thickness, build up
+        return 10f + smooth * 15f; // 10 → 25
     }
 
     @Override
     public float getAuroraTexPerSegmentMult() { 
+        // Returns the multiplier controlling the frequency of the texture tiling per segment.
         return 1f; 
     }
 

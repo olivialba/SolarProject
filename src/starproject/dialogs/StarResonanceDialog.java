@@ -1,6 +1,7 @@
 package starproject.dialogs;
 
 import java.util.Map;
+import java.awt.Color;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -147,21 +148,35 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
         beam.setLocation(star.getLocation().x, star.getLocation().y);
         beam.setRadius(1f);
 
+        // Get the star color to pass to the entity
+        Color baseStarColor = star.getSpec().getCoronaColor();
+        if (baseStarColor == null) {
+            starColor = new Color(247, 255, 229, 160); // fallback
+        } 
+        else {
+            Color starColor = new Color(
+                    baseStarColor.getRed(),
+                    baseStarColor.getGreen(),
+                    baseStarColor.getBlue(),
+                    160);
+        }
+
         // Inside your StarResonanceDialog or script
         StarSystemAPI system = dialog.getInteractionTarget().getStarSystem();
         CustomCampaignEntityAPI entity = system.addCustomEntity(
             null,
             null,
             "star_aurora_resonance_entity",
-            "neutral"             
+            "neutral",
+            starColor    
         );
 
         // Set the location to the star
         entity.setLocation(star.getLocation().x, star.getLocation().y);
         entity.setRadius(star.getRadius());
 
-        Misc.fadeAndExpire(entity, 12f);
-        Misc.fadeAndExpire(beam, 12f);
+        Misc.fadeAndExpire(entity, 22f);
+        Misc.fadeAndExpire(beam, 22f);
     }
 
 
