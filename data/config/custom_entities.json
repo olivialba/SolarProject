@@ -18,5 +18,25 @@
     "iconHeight": 16,
     "layers": [STATIONS],
     "pluginClass": "starproject.entities.ResonanceBeamEntityPlugin"
+  },
+  "star_aurora_resonance_entity": {
+    "defaultName": "Star Aurora Resonance",
+    "nameInText": "Star Aurora Resonance",
+    "shortName": "resonance_aurora",
+    "aOrAn": "a",
+    "isOrAre": "is",
+    "defaultRadius": 1,
+    "showInCampaign": true,
+    "showIconOnMap": false,
+    "showNameOnMap": false,
+    "scaleNameWithZoom": false,
+    "scaleIconWithZoom": false,
+    "renderCircleIndicator": false,
+    "renderCircleIndicatorSelectionFlash": false,
+    "icon": "graphics/icons/mission_location.png",
+    "iconWidth": 16,
+    "iconHeight": 16,
+    "layers": [TERRAIN_7],
+    "pluginClass": "starproject.entities.StarAuroraResonanceEntity"
   }
 }

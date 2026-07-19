@@ -12,6 +12,7 @@ import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.api.campaign.CustomCampaignEntityAPI;
 
@@ -146,6 +147,20 @@ public class StarResonanceDialog implements InteractionDialogPlugin {
         beam.setLocation(star.getLocation().x, star.getLocation().y);
         beam.setRadius(1f);
 
+        // Inside your StarResonanceDialog or script
+        StarSystemAPI system = dialog.getInteractionTarget().getStarSystem();
+        CustomCampaignEntityAPI entity = system.addCustomEntity(
+            null,
+            null,
+            "star_aurora_resonance_entity",
+            "neutral"             
+        );
+
+        // Set the location to the star
+        entity.setLocation(star.getLocation().x, star.getLocation().y);
+        entity.setRadius(star.getRadius());
+
+        Misc.fadeAndExpire(entity, 12f);
         Misc.fadeAndExpire(beam, 12f);
     }
 

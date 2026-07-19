@@ -23,10 +23,11 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
 
     private static final float BEAM_PULSE_SPEED = 6f;
     private static final float BEAM_SCROLL_SPEED = 0.12f;
+    private static float TAPER_LENGTH = 90f;
 
     // Warm, stellar resonance colors
-    private static final Color FRINGE_COLOR = new Color(255, 120, 40);
-    private static final Color CORE_COLOR = new Color(255, 240, 200);
+    private static final Color FRINGE_COLOR = new Color(255, 170, 40);
+    private static final Color CORE_COLOR = new Color(255, 255, 220);
 
     private SpriteAPI fringeSprite;
     private SpriteAPI coreSprite;
@@ -38,7 +39,7 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         ((CustomCampaignEntityAPI) entity).setRadius(1f);
 
         fringeSprite = Global.getSettings().getSprite("graphics/fx/beamfringe.png");
-        coreSprite = Global.getSettings().getSprite("graphics/fx/beamcore.png");
+        coreSprite = Global.getSettings().getSprite("graphics/fx/projtrail.png");
     }
 
     @Override
@@ -79,81 +80,87 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         float viewportAlpha = viewport.getAlphaMult();
         float sensorAlpha = entity.getSensorFaderBrightness() * entity.getSensorContactFaderBrightness();
         
-        // A gentle, slow pulse for the overall brightness to make it feel "alive"
-        float pulse = 0.85f + 0.15f * (float) Math.sin(elapsed * 4f);
+        float pulse = 0.85f + 0.15f * (float)Math.sin(elapsed * 4f);
         float baseAlpha = viewportAlpha * sensorAlpha * pulse * BEAM_ALPHA;
-
         if (baseAlpha <= 0f) return;
 
-        float fromX = entity.getLocation().x;
-        float fromY = entity.getLocation().y;
-        float toX = fleet.getLocation().x;
-        float toY = fleet.getLocation().y;
+        float starX = entity.getLocation().x;
+        float starY = entity.getLocation().y;
+        float fleetX = fleet.getLocation().x;
+        float fleetY = fleet.getLocation().y;
 
-        float distance = Misc.getDistance(fromX, fromY, toX, toY);
+        float distance = Misc.getDistance(starX, starY, fleetX, fleetY);
         if (distance <= 1f) return;
 
         GL11.glPushMatrix();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
+
         GL11.glEnable(GL11.GL_BLEND);
-        // Additive blending: makes overlapping colors brighter, perfect for energy
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE); 
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
 
-        // 1. Outer Fringe (Wide, transparent, pulsing slightly in width, scrolling slowly backwards)
-        float outerWidth = BASE_WIDTH + 15f * (float)Math.sin(elapsed * 3f);
-        renderBeamLayer(fromX, fromY, toX, toY, distance, outerWidth, FRINGE_COLOR, baseAlpha * 0.35f, fringeSprite, -0.05f);
+        renderBeamLayer(
+                starX,
+                starY,
+                fleetX,
+                fleetY,
+                distance,
+                BASE_WIDTH + 15f * (float)Math.sin(elapsed * 3f),
+                FRINGE_COLOR,
+                pulse * 0.35f,
+                fringeSprite,
+                -0.05f
+        );
 
-        // 2. Inner Fringe (Medium width, more opaque, scrolling forwards)
-        float innerWidth = BASE_WIDTH * 0.6f;
-        renderBeamLayer(fromX, fromY, toX, toY, distance, innerWidth, FRINGE_COLOR, baseAlpha * 0.65f, fringeSprite, 0.15f);
+        renderBeamLayer(
+                starX,
+                starY,
+                fleetX,
+                fleetY,
+                distance,
+                BASE_WIDTH * 0.6f,
+                FRINGE_COLOR,
+                pulse * 0.65f,
+                fringeSprite,
+                0.15f
+        );
 
-        // 3. Hot Core (Narrow, very bright, scrolling fast)
-        float coreWidth = BASE_WIDTH * 0.27f;
-        renderBeamLayer(fromX, fromY, toX, toY, distance, coreWidth, CORE_COLOR, baseAlpha, coreSprite, 0.35f);
+        renderBeamLayer(
+                starX,
+                starY,
+                fleetX,
+                fleetY,
+                distance,
+                BASE_WIDTH * 0.27f,
+                CORE_COLOR,
+                pulse,
+                coreSprite,
+                0.35f
+        );  
 
         GL11.glPopMatrix();
     }
 
-    private void renderBeamLayer(float fromX, float fromY,
-                                float toX, float toY,
-                                float distance,
-                                float width,
-                                Color color,
-                                float alpha,
-                                SpriteAPI sprite,
-                                float scrollSpeed) {
-
+    private  void renderBeamLayer(float fromX, float fromY, float toX, float toY, float distance, float width, Color color, float alpha, SpriteAPI sprite, float scrollSpeed) {
+        float r = color.getRed() / 255f;
+        float g = color.getGreen() / 255f;
+        float b = color.getBlue() / 255f;
+        
+        
         float dirX = toX - fromX;
         float dirY = toY - fromY;
 
         float invDistance = 1f / distance;
 
-        // Unit direction vector
         float nx = dirX * invDistance;
         float ny = dirY * invDistance;
 
-        // Perpendicular vector
         float px = -ny;
         float py = nx;
 
         float halfWidth = width * 0.5f;
 
-        //-------------------------------------------------
-        // How long the cone should be
-        //-------------------------------------------------
-
-        float taperLength = Math.min(90f, distance * 0.25f);
-
-        //-------------------------------------------------
-        // Rectangle ends here
-        //-------------------------------------------------
-
-        float taperStartX = toX - nx * taperLength;
-        float taperStartY = toY - ny * taperLength;
-
-        //-------------------------------------------------
-        // Rectangle vertices
-        //-------------------------------------------------
+        float taper = Math.min(TAPER_LENGTH, distance * 0.25f);
+        float taperX = toX - nx * taper;
+        float taperY = toY - ny * taper;
 
         float startLeftX = fromX + px * halfWidth;
         float startLeftY = fromY + py * halfWidth;
@@ -161,36 +168,21 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         float startRightX = fromX - px * halfWidth;
         float startRightY = fromY - py * halfWidth;
 
-        float taperLeftX = taperStartX + px * halfWidth;
-        float taperLeftY = taperStartY + py * halfWidth;
+        float taperLeftX = taperX + px * halfWidth;
+        float taperLeftY = taperY + py * halfWidth;
 
-        float taperRightX = taperStartX - px * halfWidth;
-        float taperRightY = taperStartY - py * halfWidth;
+        float taperRightX = taperX - px * halfWidth;
+        float taperRightY = taperY - py * halfWidth;
 
-        //-------------------------------------------------
-        // Texture coordinates
-        //-------------------------------------------------
-
-        float startU = elapsed * scrollSpeed;
-
+        float startU = (float) (elapsed * scrollSpeed + Math.sin(elapsed * 2f) * 0.2f);
         float repeat = Math.max(1f, distance / 400f);
-
-        float taperFraction = (distance - taperLength) / distance;
-
-        float taperU = startU + repeat * taperFraction;
         float endU = startU + repeat;
+        float taperU = startU + repeat * ((distance - taper) / distance);
 
         sprite.bindTexture();
 
-        GL11.glColor4f(
-                color.getRed() / 255f,
-                color.getGreen() / 255f,
-                color.getBlue() / 255f,
-                alpha);
-
-        //-------------------------------------------------
-        // MAIN RECTANGLE
-        //-------------------------------------------------
+        // Fade near the star
+        GL11.glColor4f(r, g, b, 0f);
 
         GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
 
@@ -200,6 +192,9 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         GL11.glTexCoord2f(startU, 1f);
         GL11.glVertex2f(startRightX, startRightY);
 
+        // Main Beam
+        GL11.glColor4f(r, g, b, alpha);
+
         GL11.glTexCoord2f(taperU, 0f);
         GL11.glVertex2f(taperLeftX, taperLeftY);
 
@@ -208,9 +203,6 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
 
         GL11.glEnd();
 
-        //-------------------------------------------------
-        // CONE
-        //-------------------------------------------------
 
         GL11.glBegin(GL11.GL_TRIANGLES);
 
@@ -220,7 +212,6 @@ public class ResonanceBeamEntityPlugin extends BaseCustomEntityPlugin {
         GL11.glTexCoord2f(taperU, 1f);
         GL11.glVertex2f(taperRightX, taperRightY);
 
-        // Sample the center of the texture at the tip
         GL11.glTexCoord2f(endU, 0.5f);
         GL11.glVertex2f(toX, toY);
 
